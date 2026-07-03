@@ -1,18 +1,32 @@
-name: Deploy to GitHub Pages
+name: Deploy static content to Pages
+
 on:
   push:
-    branches: [ main ]
+    branches: ["main"] # или master, если ваша главная ветка называется так
+
 jobs:
-  build-and-deploy:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install and Build
-        run: |
-          npm ci
-          npm run build
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          folder: dist
+          node-version: 20
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
